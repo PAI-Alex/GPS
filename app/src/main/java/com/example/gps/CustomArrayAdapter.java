@@ -24,8 +24,8 @@ public class CustomArrayAdapter extends ArrayAdapter<String> {
     {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = inflater.inflate(R.layout.list_item, parent, false);
-        TextView textView = (TextView) view.findViewById(R.id.colors);
-        LinearLayout linearLayout = (LinearLayout) view.findViewById(R.id.llColors);
+        TextView textView =  view.findViewById(R.id.colors);
+        LinearLayout linearLayout =  view.findViewById(R.id.llColors);
         textView.setText(stringValues[position]);
         // String s = stringValues[position];
 
