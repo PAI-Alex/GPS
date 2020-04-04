@@ -13,6 +13,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.*;
 import androidx.annotation.NonNull;
@@ -50,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,6 +67,11 @@ public class MainActivity extends AppCompatActivity {
         addTask = findViewById ( R.id.addTask );
         nameTask = findViewById ( R.id.name );
         final Spinner spinner =  findViewById(R.id.spinner);
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        onClick ( fetch );
+
+
+
 
         btnTask=findViewById ( R.id.button );
         btnTask.setOnClickListener ( new View.OnClickListener () {
@@ -135,21 +142,41 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+
+       // fetchLocation();
+
+
 
         fetch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
                 fetchLocation();
+                user_location1.setText(String.valueOf (  latitude));
+                user_location2.setText (String.valueOf (  longitude));
+                checkLocation ();
+
 
 
             }
         });
 
     }
+  public void onClick(View v){
 
-    private void fetchLocation() {
+                fetchLocation ();
+      user_location1.setText(String.valueOf (  latitude));
+      user_location2.setText (String.valueOf (  longitude));
+                Log.d(LOG_TAG, "Кнопка нажата " );
+                String [] lat = {String.valueOf(user_location1.getText ())};
+                Log.d(LOG_TAG, "Координата 167 " +lat[0]);
+
+
+
+    }
+
+    public void fetchLocation() {
 
 
         if (ContextCompat.checkSelfPermission(MainActivity.this,
@@ -207,8 +234,7 @@ public class MainActivity extends AppCompatActivity {
                                  latitude = location.getLatitude();
                                  longitude = location.getLongitude();
 
-                                user_location1.setText("="+latitude);
-                                user_location2.setText ("\nLongitude = " + longitude);
+
 
 
                             }
@@ -281,6 +307,86 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         notificationManager.notify(1, notification);
+    }
+
+    void checkLocation(){
+        fetchLocation();
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        String [] columns = {"location"};
+        String [] lat = {String.valueOf(user_location1.getText ())};
+        String place = null;
+        String myTask = null;
+        String selection = "latitude IS ?";
+        Cursor c = db.query("myplace", columns, selection, lat, null, null, null);
+        if (c.moveToFirst()) {
+
+
+            int  location = c.getColumnIndex("location");
+            place = c.getString (location );
+
+
+            do {
+
+            } while (c.moveToNext());
+
+        } else
+            Log.d(LOG_TAG, "0 rows");
+       //
+
+
+
+
+        logCursor ( c );
+        c.close();
+        String [] columns2 = {"task"};
+        String [] pl = {place};
+
+        String selection2 = "location IS ?";
+        Cursor c2 = db.query("mytask", columns2, selection2, pl, null, null, null);
+        if (c2.moveToFirst()) {
+
+
+            int  task = c2.getColumnIndex("task");
+            myTask=c2.getString ( task );
+
+
+
+            do {
+
+            } while (c2.moveToNext());
+
+        } else
+            Log.d(LOG_TAG, "0 rows");
+        logCursor ( c2 );
+        c2.close();
+        showToast ( place,myTask );
+
+
+
+
+    }
+    void logCursor(Cursor c) {
+        if (c != null) {
+            if (c.moveToFirst()) {
+                String str;
+                do {
+                    str = "";
+                    for (String cn : c.getColumnNames()) {
+                        str = str.concat(cn + " = " + c.getString(c.getColumnIndex(cn)) + "; ");
+                    }
+                    Log.d(LOG_TAG, str);
+                } while (c.moveToNext());
+            }
+        } else
+            Log.d(LOG_TAG, "Cursor is null");
+    }
+    public void showToast(String loc, String task) {
+        //создаём и отображаем текстовое уведомление
+        Toast toast = Toast.makeText(getApplicationContext(),
+                "Вы в локации: "+ loc+"\nВаше задание: "+ task,
+                Toast.LENGTH_SHORT);
+        toast.setGravity( Gravity.CENTER, 0, 0);
+        toast.show();
     }
 
 
